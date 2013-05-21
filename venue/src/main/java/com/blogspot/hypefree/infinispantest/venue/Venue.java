@@ -26,7 +26,6 @@ import com.blogspot.hypefree.infinispantest.orderbook.IdSource;
 import com.blogspot.hypefree.infinispantest.orderbook.OrderMatcher;
 import com.blogspot.hypefree.infinispantest.orderbook.Orderbook;
 import com.blogspot.hypefree.infinispantest.orderbook.TransactionSink;
-import com.blogspot.hypefree.infinispantest.source.DataSource;
 
 public final class Venue {
 	private static final Log LOG = LogFactory.getLog(Venue.class);
@@ -106,12 +105,6 @@ public final class Venue {
 			result += transaction.getQuantity().doubleValue();
 		}
 		return result / 2.0d;
-	}
-
-	void clear() {
-		orderbooks.clear();
-		orderbooks.put(Market.BTCUSD.name(), new Orderbook());
-		transactions.clear();
 	}
 
 	private final class EventProcessor {

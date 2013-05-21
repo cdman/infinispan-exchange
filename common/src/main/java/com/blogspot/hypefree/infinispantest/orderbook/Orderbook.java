@@ -86,6 +86,17 @@ public final class Orderbook implements DeltaAware {
 		return list.get(0);
 	}
 
+	public int getActiveOrderCount() {
+		int result = 0;
+		for (List<Order> orderList : getMap(Side.BUY).values()) {
+			result += orderList.size();
+		}
+		for (List<Order> orderList : getMap(Side.SELL).values()) {
+			result += orderList.size();
+		}
+		return result;
+	}
+
 	public static abstract class OrderbookOperation {
 		abstract void apply(Orderbook orderbook);
 	}
@@ -316,7 +327,7 @@ public final class Orderbook implements DeltaAware {
 		@Override
 		public Orderbook readObject(ObjectInput input) throws IOException,
 				ClassNotFoundException {
-			OrderbookDelta delta = (OrderbookDelta)input.readObject();
+			OrderbookDelta delta = (OrderbookDelta) input.readObject();
 			return (Orderbook) delta.merge(null);
 		}
 

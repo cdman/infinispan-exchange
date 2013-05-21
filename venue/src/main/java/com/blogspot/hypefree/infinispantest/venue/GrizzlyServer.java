@@ -13,19 +13,21 @@ import com.sun.jersey.api.core.ResourceConfig;
 
 final class GrizzlyServer {
 	private static final Log LOG = LogFactory.getLog(GrizzlyServer.class);
-	
+
 	void start() {
-		ResourceConfig rc = new ClassNamesResourceConfig(OrderHandler.class);
-		
+		ResourceConfig rc = new ClassNamesResourceConfig(OrderHandler.class,
+				TradedVolumeHandler.class);
+
 		for (int i = 1; i < 255; ++i) {
-			URI serverURI = UriBuilder.fromUri("http://127.0.0." + i + "/").port(8082)
-					.build();
+			URI serverURI = UriBuilder.fromUri("http://127.0.0." + i + "/")
+					.port(8082).build();
 			try {
 				GrizzlyServerFactory.createHttpServer(serverURI, rc);
 				LOG.info("Bound to " + serverURI);
 				break;
 			} catch (Exception e) {
-				LOG.info("Error binding to " + serverURI + ": " + e.getMessage());
+				LOG.info("Error binding to " + serverURI + ": "
+						+ e.getMessage());
 				continue;
 			}
 		}

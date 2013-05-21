@@ -27,6 +27,7 @@ public final class OrderbookTest {
 
 		Orderbook newOrderbook = (Orderbook) orderbook.delta().merge(null);
 		assertEquals(orderbook, newOrderbook);
+		assertEquals(2, orderbook.getActiveOrderCount());
 	}
 
 	private Order getBuyOrder(long quantity) {
