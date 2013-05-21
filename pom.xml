@@ -5,28 +5,42 @@
 	<groupId>com.blogspot.hype-free</groupId>
 	<artifactId>infinispan-demo</artifactId>
 	<version>0.1-SNAPSHOT</version>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 
-	<name>parent</name>
+	<name>infinispan-demo</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<infinispan.version>5.3.0.Beta1</infinispan.version>
+		<infinispan.version>5.3.0.Beta2</infinispan.version>
 	</properties>
 
-	<modules>
-		<module>common</module>
-		<module>venue</module>
-		<module>runner</module>
-	</modules>
-
 	<dependencies>
+		<dependency>
+			<groupId>org.infinispan</groupId>
+			<artifactId>infinispan-core</artifactId>
+			<version>${infinispan.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>1.17.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-grizzly2</artifactId>
+			<version>1.17.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>1.17.1</version>
 		</dependency>
 	</dependencies>
 

@@ -29,7 +29,7 @@ public final class OrderHandler {
 		try {
 			Venue.getInstance().addOrder(order).get();
 		} catch (InterruptedException | ExecutionException e) {
-			throw new WebApplicationException(500);
+			throw new WebApplicationException(e, 500);
 		}
 	}
 }

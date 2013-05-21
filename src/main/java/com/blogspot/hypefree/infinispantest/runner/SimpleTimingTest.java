@@ -53,8 +53,6 @@ public final class SimpleTimingTest {
 			System.out.println(String.format("%d\t%.2f\t%.2f\t%d", id,
 					totalValue, totalQuatity, duration));
 
-			System.exit(0);
-
 			dataSource = null;
 			orderbook = null;
 			orderMatcher = null;
