@@ -65,12 +65,12 @@ public final class Main {
 				while (true) {
 					TimeUnit.SECONDS.sleep(10);
 
-					// int i = r.nextInt(processes.length);
-					// LOG.info("Restarting venue " + i);
-					//
-					// processes[i].destroy();
-					// TimeUnit.SECONDS.sleep(5);
-					// processes[i] = getVenueProcessBuilder(i).start();
+					int i = r.nextInt(processes.length);
+					LOG.info("Restarting venue " + i);
+
+					processes[i].destroy();
+					TimeUnit.SECONDS.sleep(5);
+					processes[i] = getVenueProcessBuilder(i).start();
 				}
 			}
 

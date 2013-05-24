@@ -1,6 +1,7 @@
 package com.blogspot.hypefree.infinispantest.venue;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -9,6 +10,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.transaction.TransactionManager;
 
 import org.infinispan.Cache;
+import org.infinispan.distexec.mapreduce.Collector;
+import org.infinispan.distexec.mapreduce.MapReduceTask;
+import org.infinispan.distexec.mapreduce.Mapper;
+import org.infinispan.distexec.mapreduce.Reducer;
 import org.infinispan.distribution.ch.ConsistentHash;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.notifications.Listener;
@@ -26,6 +31,7 @@ import com.blogspot.hypefree.infinispantest.orderbook.IdSource;
 import com.blogspot.hypefree.infinispantest.orderbook.OrderMatcher;
 import com.blogspot.hypefree.infinispantest.orderbook.Orderbook;
 import com.blogspot.hypefree.infinispantest.orderbook.TransactionSink;
+import com.blogspot.hypefree.infinispantest.source.DataSource;
 
 public final class Venue {
 	private static final Log LOG = LogFactory.getLog(Venue.class);
@@ -66,6 +72,64 @@ public final class Venue {
 	}
 
 	public void run() {
+		Thread loader = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				for (int i = 20; i > 0; --i) {
+					System.out.println("Waiting for startup " + i);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+
+				ConsistentHash hash = orderbooks.getAdvancedCache()
+						.getDistributionManager().getConsistentHash();
+				Address localAddress = cacheManager.getAddress();
+				Address primaryNode = hash.locatePrimaryOwner(Market.BTCUSD
+						.name());
+				if (!localAddress.equals(primaryNode)) {
+					return;
+				}
+
+				List<Order> orders = new ArrayList<>();
+				try {
+					DataSource dataSource = new DataSource();
+					while (dataSource.hasNext()) {
+						Order order = dataSource.next();
+						orders.add(order);
+					}
+					dataSource.close();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+					return;
+				}
+
+				long start = System.nanoTime();
+				int index = 0;
+				for (Order order : orders) {
+					Future<?> future = addOrder(order);
+					if (++index % 1_000 == 0) {
+						try {
+							future.get();
+						} catch (InterruptedException | ExecutionException e1) {
+							e1.printStackTrace();
+						}
+						System.out.println(index);
+					}
+				}
+				long duration = (System.nanoTime() - start) / 1_000_000;
+
+				System.out.println("Total traded volume: " + getTradedVolume());
+				System.out.println(duration / 1_000.0d);
+			}
+		});
+
+		if (System.getProperties().containsKey("localLoad")) {
+			loader.start();
+		}
+
 		grizzlyServer.start();
 	}
 
@@ -100,11 +164,38 @@ public final class Venue {
 	}
 
 	double getTradedVolume() {
-		double result = 0.0d;
-		for (Transaction transaction : transactions.values()) {
-			result += transaction.getQuantity().doubleValue();
+		MapReduceTask<Long, Transaction, Long, Double> mrTask = new MapReduceTask<Long, Transaction, Long, Double>(
+				transactions);
+		mrTask.mappedWith(new TradedVolumeMapper()).reducedWith(
+				new TradedVolumeReducer());
+
+		return mrTask.execute().get(0L) / 2.0d;
+	}
+
+	private final static class TradedVolumeMapper implements
+			Mapper<Long, Transaction, Long, Double> {
+		private static final long serialVersionUID = 8659000998496309022L;
+
+		@Override
+		public void map(Long key, Transaction value,
+				Collector<Long, Double> collector) {
+			collector.emit(0L, value.getQuantity().doubleValue());
 		}
-		return result / 2.0d;
+	}
+
+	private final static class TradedVolumeReducer implements
+			Reducer<Long, Double> {
+		private static final long serialVersionUID = 8302490513774886177L;
+
+		@Override
+		public Double reduce(Long reducedKey, Iterator<Double> iter) {
+			double sum = 0;
+			while (iter.hasNext()) {
+				Double i = iter.next();
+				sum += i;
+			}
+			return sum;
+		}
 	}
 
 	private final class EventProcessor {
