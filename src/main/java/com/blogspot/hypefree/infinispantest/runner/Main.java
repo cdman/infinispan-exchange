@@ -106,7 +106,6 @@ public final class Main {
 
 		try {
 			RestSource restSource = new RestSource();
-			LOG.info("Total quantity: " + restSource.getTotalQuantity());
 			restSource.run();
 			LOG.info("Total quantity: " + restSource.getTotalQuantity());
 		} finally {

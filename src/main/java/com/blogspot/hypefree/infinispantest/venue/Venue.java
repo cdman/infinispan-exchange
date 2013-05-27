@@ -169,7 +169,11 @@ public final class Venue {
 		mrTask.mappedWith(new TradedVolumeMapper()).reducedWith(
 				new TradedVolumeReducer());
 
-		return mrTask.execute().get(0L) / 2.0d;
+		Double result = mrTask.execute().get(0L);
+		if (result == null) {
+			result = 0.0d;
+		}
+		return result / 2.0d;
 	}
 
 	private final static class TradedVolumeMapper implements
