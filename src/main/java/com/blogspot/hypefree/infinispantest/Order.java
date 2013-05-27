@@ -8,7 +8,9 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.infinispan.marshall.AdvancedExternalizer;
+import org.infinispan.marshall.SerializeWith;
 
+@SerializeWith(Order.OrderExternalizer.class)
 public final class Order {
 	private static final int VERSION = 1;
 

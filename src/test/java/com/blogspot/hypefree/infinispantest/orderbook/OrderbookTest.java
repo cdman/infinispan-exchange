@@ -2,6 +2,7 @@ package com.blogspot.hypefree.infinispantest.orderbook;
 
 import java.math.BigDecimal;
 
+import org.infinispan.marshall.jboss.JBossMarshaller;
 import org.junit.*;
 import static org.junit.Assert.*;
 
@@ -28,6 +29,19 @@ public final class OrderbookTest {
 		Orderbook newOrderbook = (Orderbook) orderbook.delta().merge(null);
 		assertEquals(orderbook, newOrderbook);
 		assertEquals(2, orderbook.getActiveOrderCount());
+	}
+
+	@Test
+	public void testDeSerializaton() throws Exception {
+		orderbook.addOrder(getBuyOrder(5));
+		orderbook.addOrder(getBuyOrder(3));
+		orderbook.addOrder(getSellOrder(7));
+		orderbook.commit();
+
+		JBossMarshaller marshaller = new JBossMarshaller();
+		Orderbook deserialized = (Orderbook) marshaller
+				.objectFromByteBuffer(marshaller.objectToByteBuffer(orderbook));
+		assertEquals(3, deserialized.getActiveOrderCount());
 	}
 
 	private Order getBuyOrder(long quantity) {

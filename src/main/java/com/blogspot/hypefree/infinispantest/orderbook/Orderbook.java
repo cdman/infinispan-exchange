@@ -321,7 +321,18 @@ public final class Orderbook implements DeltaAware {
 		@Override
 		public void writeObject(ObjectOutput output, Orderbook object)
 				throws IOException {
-			output.writeObject(object.delta);
+			List<OrderbookOperation> orderAdds = new ArrayList<>();
+			for (List<Order> orderList : object.getMap(Side.BUY).values()) {
+				for (Order order : orderList) {
+					orderAdds.add(new AddOperation(order));
+				}
+			}
+			for (List<Order> orderList : object.getMap(Side.SELL).values()) {
+				for (Order order : orderList) {
+					orderAdds.add(new AddOperation(order));
+				}
+			}
+			output.writeObject(new OrderbookDelta(orderAdds));
 		}
 
 		@Override
