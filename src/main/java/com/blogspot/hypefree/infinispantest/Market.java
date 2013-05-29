@@ -19,6 +19,7 @@ public enum Market {
 				return m;
 			}
 		}
-		throw new IllegalArgumentException("Market with id " + id + " does not exists!");
+		throw new IllegalArgumentException("Market with id " + id
+				+ " does not exists!");
 	}
 }

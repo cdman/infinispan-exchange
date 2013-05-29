@@ -63,7 +63,7 @@ public final class DataSource implements Iterator<Order> {
 	public void remove() {
 		throw new UnsupportedOperationException();
 	}
-	
+
 	public void close() throws IOException {
 		in.close();
 	}

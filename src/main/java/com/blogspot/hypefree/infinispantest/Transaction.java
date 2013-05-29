@@ -67,9 +67,9 @@ public final class Transaction implements Serializable {
 				&& this.quantity.equals(that.quantity)
 				&& this.price.equals(that.price);
 	}
-	
+
 	@Override
 	public int hashCode() {
-		return (int)id;
+		return (int) id;
 	}
 }

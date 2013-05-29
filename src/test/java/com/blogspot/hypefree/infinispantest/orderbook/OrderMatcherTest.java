@@ -21,11 +21,10 @@ public final class OrderMatcherTest {
 
 	@Test
 	public void simpleTest() {
-		orderbook.addOrder(new Order(1L, Side.BUY, Market.BTCUSD,
-				BigDecimal.valueOf(10L), BigDecimal.ZERO,
-				BigDecimal.valueOf(5L)));
-		orderbook.addOrder(new Order(2L, Side.SELL, Market.BTCUSD,
-				BigDecimal.valueOf(5L), BigDecimal.ZERO, BigDecimal.valueOf(1L)));
+		orderbook.addOrder(new Order(1L, Side.BUY, Market.BTCUSD, BigDecimal
+				.valueOf(10L), BigDecimal.ZERO, BigDecimal.valueOf(5L)));
+		orderbook.addOrder(new Order(2L, Side.SELL, Market.BTCUSD, BigDecimal
+				.valueOf(5L), BigDecimal.ZERO, BigDecimal.valueOf(1L)));
 		orderMatcher.runMatching();
 
 		assertEquals(Arrays.asList(new Transaction(1L, Side.BUY, 1L, 2L,

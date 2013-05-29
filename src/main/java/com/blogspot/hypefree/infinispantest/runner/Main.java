@@ -63,13 +63,14 @@ public final class Main {
 
 				Random r = new Random();
 				while (true) {
-					TimeUnit.SECONDS.sleep(10);
+					TimeUnit.MINUTES.sleep(5);
 
 					int i = r.nextInt(processes.length);
-					LOG.info("Restarting venue " + i);
 
+					LOG.info("Stopping venue " + i);
 					processes[i].destroy();
 					TimeUnit.SECONDS.sleep(5);
+					LOG.info("Starting venue " + i);
 					processes[i] = getVenueProcessBuilder(i).start();
 				}
 			}
@@ -100,7 +101,7 @@ public final class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Thread daemonizer = new Thread(getDaemonRunnable());
+		Thread daemonizer = new Thread(getDaemonRunnable(), "Venue manager");
 		daemonizer.start();
 		INITIAL_VENUES_STARTED.await();
 
@@ -111,6 +112,5 @@ public final class Main {
 		} finally {
 			daemonizer.interrupt();
 		}
-
 	}
 }

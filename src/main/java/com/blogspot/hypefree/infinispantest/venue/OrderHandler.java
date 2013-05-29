@@ -23,9 +23,9 @@ public final class OrderHandler {
 		Market marketValue = Market.valueOf(form.getFirst("market"));
 		BigDecimal quantityValue = new BigDecimal(form.getFirst("quantity")), priceValue = new BigDecimal(
 				form.getFirst("price"));
-		Order order = new Order(Long.valueOf(form.getFirst("id")), sideValue, marketValue, quantityValue,
-				BigDecimal.ZERO, priceValue);
-		
+		Order order = new Order(Long.valueOf(form.getFirst("id")), sideValue,
+				marketValue, quantityValue, BigDecimal.ZERO, priceValue);
+
 		try {
 			Venue.getInstance().addOrder(order).get();
 		} catch (InterruptedException | ExecutionException e) {

@@ -1,6 +1,7 @@
 package com.blogspot.hypefree.infinispantest.runner;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -35,19 +36,28 @@ final class RestSource {
 				}
 			} catch (ClientHandlerException ex) {
 			}
+
+			try {
+				TimeUnit.MILLISECONDS.sleep(10);
+			} catch (InterruptedException e) {
+			}
+
 			ipSuffix += 1;
-			if (ipSuffix == 255) {
+			if (ipSuffix == 20) {
 				ipSuffix = 1;
 			}
 		}
 	}
-	
+
 	double getTotalQuantity() {
-		ClientResponse response = client
-				.resource("http://127.0.0." + ipSuffix + ":8082/volume")
-				.accept(MediaType.WILDCARD)
-				.get(ClientResponse.class);
-		return Double.parseDouble(response.getEntity(String.class));
+		try {
+			ClientResponse response = client
+					.resource("http://127.0.0." + ipSuffix + ":8082/volume")
+					.accept(MediaType.WILDCARD).get(ClientResponse.class);
+			return Double.parseDouble(response.getEntity(String.class));
+		} catch (Exception ex) {
+			return Double.NaN;
+		}
 	}
 
 	void run() throws IOException {
@@ -67,6 +77,7 @@ final class RestSource {
 
 			if (++i % 100 == 0) {
 				LOG.info("Inserted " + i + " orders");
+				LOG.info("Total quantity: " + getTotalQuantity());
 			}
 		}
 		dataSource.close();

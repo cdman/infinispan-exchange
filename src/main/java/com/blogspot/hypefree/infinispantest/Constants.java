@@ -1,5 +1,7 @@
 package com.blogspot.hypefree.infinispantest;
 
+import java.util.concurrent.TimeUnit;
+
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
@@ -7,6 +9,10 @@ import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.context.Flag;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.transaction.TransactionMode;
+import org.infinispan.transaction.TransactionProtocol;
+import org.infinispan.transaction.lookup.GenericTransactionManagerLookup;
+import org.infinispan.util.concurrent.IsolationLevel;
 
 public final class Constants {
 	// don't use strings directly to avoid inlining
@@ -28,9 +34,18 @@ public final class Constants {
 
 		return new DefaultCacheManager(GlobalConfigurationBuilder
 				.defaultClusteredBuilder().serialization().transport().build(),
-				new ConfigurationBuilder().invocationBatching().enable()
+				new ConfigurationBuilder()
+						.transaction()
+						.transactionMode(TransactionMode.TRANSACTIONAL)
+						.transactionManagerLookup(
+								new GenericTransactionManagerLookup())
+						.transactionProtocol(TransactionProtocol.DEFAULT)
+						.recovery().enable().locking().concurrencyLevel(10)
+						.useLockStriping(false)
+						.isolationLevel(IsolationLevel.READ_COMMITTED)
 						.clustering().cacheMode(CacheMode.DIST_SYNC).hash()
-						.numOwners(2).build());
+						.numOwners(2).sync().replTimeout(10, TimeUnit.SECONDS)
+						.stateTransfer().fetchInMemoryState(true).build());
 	}
 
 	@SuppressWarnings("unchecked")
