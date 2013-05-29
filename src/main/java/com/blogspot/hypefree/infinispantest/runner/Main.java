@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Field;
 
 import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
@@ -53,7 +54,11 @@ public final class Main {
 
 			private final Process[] processes = new Process[NO_VENUES];
 
-			private void execute() throws InterruptedException, IOException {
+			private void execute() throws Exception {
+				Field fId = Class.forName("java.lang.UNIXProcess")
+						.getDeclaredField("pid");
+				fId.setAccessible(true);
+
 				for (int i = 0; i < processes.length; ++i) {
 					LOG.info("Starting venue " + i);
 					processes[i] = getVenueProcessBuilder(i).start();
@@ -63,12 +68,23 @@ public final class Main {
 
 				Random r = new Random();
 				while (true) {
-					TimeUnit.MINUTES.sleep(5);
+					TimeUnit.MINUTES.sleep(10);
 
 					int i = r.nextInt(processes.length);
 
 					LOG.info("Stopping venue " + i);
 					processes[i].destroy();
+					TimeUnit.SECONDS.sleep(1);
+
+					int pid = fId.getInt(processes[i]);
+					LOG.info("Killing pid " + pid);
+					Runtime.getRuntime()
+							.exec(new String[] { "/bin/kill", "-9",
+									Integer.toString(pid) }).waitFor();
+
+					LOG.info("Waiting for termination " + i);
+					processes[i].waitFor();
+
 					TimeUnit.SECONDS.sleep(5);
 					LOG.info("Starting venue " + i);
 					processes[i] = getVenueProcessBuilder(i).start();
