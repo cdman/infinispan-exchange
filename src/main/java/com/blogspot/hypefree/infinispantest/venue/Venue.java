@@ -252,6 +252,7 @@ public final class Venue {
 			try {
 				tm.begin();
 				try {
+					orderbooks.getAdvancedCache().lock(marketName); 
 					Orderbook orderbook = orderbooks.get(marketName);
 					orderbook.addOrder(order);
 					orderMatchers.get(marketName).runMatching();

@@ -68,7 +68,7 @@ public final class Main {
 
 				Random r = new Random();
 				while (true) {
-					TimeUnit.MINUTES.sleep(10);
+					TimeUnit.MINUTES.sleep(5);
 
 					int i = r.nextInt(processes.length);
 
@@ -85,7 +85,7 @@ public final class Main {
 					LOG.info("Waiting for termination " + i);
 					processes[i].waitFor();
 
-					TimeUnit.SECONDS.sleep(5);
+					TimeUnit.SECONDS.sleep(10);
 					LOG.info("Starting venue " + i);
 					processes[i] = getVenueProcessBuilder(i).start();
 				}

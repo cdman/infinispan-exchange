@@ -9,6 +9,7 @@ import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.context.Flag;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.transaction.LockingMode;
 import org.infinispan.transaction.TransactionMode;
 import org.infinispan.transaction.TransactionProtocol;
 import org.infinispan.transaction.lookup.GenericTransactionManagerLookup;
@@ -36,16 +37,24 @@ public final class Constants {
 				.defaultClusteredBuilder().serialization().transport().build(),
 				new ConfigurationBuilder()
 						.transaction()
-						.transactionMode(TransactionMode.TRANSACTIONAL)
-						.transactionManagerLookup(
-								new GenericTransactionManagerLookup())
-						.transactionProtocol(TransactionProtocol.DEFAULT)
-						.recovery().enable().locking().concurrencyLevel(10)
+							.transactionMode(TransactionMode.TRANSACTIONAL)
+							.transactionManagerLookup(new GenericTransactionManagerLookup())
+							.transactionProtocol(TransactionProtocol.DEFAULT)
+							.lockingMode(LockingMode.PESSIMISTIC)
+							.recovery().enable()
+						.locking()
+							.concurrencyLevel(10)
 						.useLockStriping(false)
 						.isolationLevel(IsolationLevel.READ_COMMITTED)
-						.clustering().cacheMode(CacheMode.DIST_SYNC).hash()
-						.numOwners(2).sync().replTimeout(10, TimeUnit.SECONDS)
-						.stateTransfer().fetchInMemoryState(true).build());
+						.clustering()
+							.cacheMode(CacheMode.DIST_SYNC)
+							.hash()
+							.numOwners(2)
+							.sync()
+							.replTimeout(5, TimeUnit.SECONDS)
+							.stateTransfer()
+								.fetchInMemoryState(true)
+						.build());
 	}
 
 	@SuppressWarnings("unchecked")
