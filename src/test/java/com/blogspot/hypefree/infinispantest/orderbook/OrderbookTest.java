@@ -1,6 +1,7 @@
 package com.blogspot.hypefree.infinispantest.orderbook;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import org.infinispan.marshall.jboss.JBossMarshaller;
 import org.junit.*;
@@ -42,6 +43,21 @@ public final class OrderbookTest {
 		Orderbook deserialized = (Orderbook) marshaller
 				.objectFromByteBuffer(marshaller.objectToByteBuffer(orderbook));
 		assertEquals(3, deserialized.getActiveOrderCount());
+	}
+
+	@Test
+	public void testOrderOderAfterDeSerializaton() throws Exception {
+		Order buyOrder1 = getBuyOrder(5), buyOrder2 = getBuyOrder(3);
+		orderbook.addOrder(buyOrder1);
+		orderbook.addOrder(buyOrder2);
+		orderbook.commit();
+
+		JBossMarshaller marshaller = new JBossMarshaller();
+		Orderbook deserialized = (Orderbook) marshaller
+				.objectFromByteBuffer(marshaller.objectToByteBuffer(orderbook));
+
+		assertEquals(Arrays.asList(buyOrder1, buyOrder2),
+				deserialized.getOrders(Side.BUY, PRICE));
 	}
 
 	private Order getBuyOrder(long quantity) {
