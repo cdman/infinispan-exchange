@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.transaction.TransactionManager;
@@ -218,27 +219,48 @@ public final class Venue {
 		}
 
 		void updateTopology() {
+			LOG.info("Topology updated, waiting for things to stabilize");
+			try {
+				TimeUnit.SECONDS.sleep(10);
+			} catch (InterruptedException e) {
+				LOG.info("Exception while sleeping", e);
+			}
+
 			LOG.info("Was primary for " + primaryMarkets);
 			primaryMarkets.clear();
+			orderMatchers.clear();
 
 			ConsistentHash hash = orderbooks.getAdvancedCache()
 					.getDistributionManager().getConsistentHash();
 			Address localAddress = cacheManager.getAddress();
 			for (Market market : Market.values()) {
 				Address primaryNode = hash.locatePrimaryOwner(market.name());
-				if (localAddress.equals(primaryNode)) {
-					primaryMarkets.add(market.name());
-					orderbooks.putIfAbsent(market.name(), new Orderbook());
+				if (!localAddress.equals(primaryNode)) {
+					continue;
+				}
+
+				try {
+					tm.begin();
+					try {
+						orderbooks.getAdvancedCache().lock(market.name());
+						orderbooks.putIfAbsent(market.name(), new Orderbook());
+						orderMatchers.put(market.name(), new OrderMatcher(
+								orderbooks.get(market.name()), idSource,
+								transactionSink));
+						primaryMarkets.add(market.name());
+						tm.commit();
+					} catch (Exception e) {
+						LOG.error("Error for market " + market.name()
+								+ ", will roll back.", e);
+						tm.rollback();
+					}
+				} catch (Exception e) {
+					LOG.error(
+							"Transaction failure for market " + market.name(),
+							e);
 				}
 			}
 			LOG.info("Is primary for " + primaryMarkets);
-
-			orderMatchers.clear();
-			for (String marketName : primaryMarkets) {
-				orderMatchers.put(marketName,
-						new OrderMatcher(orderbooks.get(marketName), idSource,
-								transactionSink));
-			}
 		}
 
 		void addOrder(Order order) {
@@ -252,7 +274,7 @@ public final class Venue {
 			try {
 				tm.begin();
 				try {
-					orderbooks.getAdvancedCache().lock(marketName); 
+					orderbooks.getAdvancedCache().lock(marketName);
 					Orderbook orderbook = orderbooks.get(marketName);
 					orderbook.addOrder(order);
 					orderMatchers.get(marketName).runMatching();
